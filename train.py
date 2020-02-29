@@ -34,10 +34,8 @@ torch.backends.cudnn.benchmark = True
 
 parser = argparse.ArgumentParser(description='')
 
-parser.add_argument('--dataroota', default=[
-	'/home/lolz0r/domain/data/billted/',
-	'/home/lolz0r/domain/data/lifeofpi/',
-	'/home/lolz0r/coco2017/train2017/'
+parser.add_argument('--dataset', default=[
+  'dataset/',
 	], type=str)
 
 parser.add_argument('--nthread', default=3, type=int)

@@ -31,7 +31,7 @@ class ABDataloader(Dataset):
 
 		self.opt = opt     
 		
-		self.imgPathsA = self.buildDataPaths(opt.dataroota)
+		self.imgPathsA = self.buildDataPaths(opt.dataset)
 		
 		#self.detector = dlib.get_frontal_face_detector()
 		#self.predictor = dlib.shape_predictor('/home/lolz0r/domain/vae/shape_predictor_68_face_landmarks.dat')
