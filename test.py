@@ -21,23 +21,6 @@ import math
 import random
 import torch.nn.functional as F
 
-class Namespace():
-  pass
-
-me = Namespace()
-me.opt = Namespace()
-me.opt.imgSize = [1, 1]
-me.opt.imgSize = [4, 3]
-me.opt.imgSize = [1280, 720]
-me.opt.targetSize = [24, 24]
-
-w, h = me.opt.imgSize[0], me.opt.imgSize[1]
-a = w / h
-me.opt.targetSize[0] = int(a*me.opt.targetSize[0])
-
-me.opt.imgSize = tuple(me.opt.imgSize)
-me.opt.targetSize = tuple(me.opt.targetSize)
-
 def tensor2img(img):
   if img.shape[0] == 3:
     img = img.permute(1,2,0)
@@ -75,12 +58,6 @@ def downsize(img, target):
   img = resize(img, target)
   return img
 
-def randomCrop(self, img):
-  y = np.random.randint(0, img.shape[0]  - (self.opt.imgSize[0] + 1))
-  x = np.random.randint(0, img.shape[1]  - (self.opt.imgSize[0] + 1)) 
-  img = img[y:y+self.opt.imgSize[1], x:x+self.opt.imgSize[0]]
-  return img
-
 def crop(img, x, y, w, h):
   ih, iw, ic = img.shape
   assert x >= 0
@@ -113,16 +90,15 @@ def randomBox(iw, ih, w, h):
   x = rand(0.0, iw - w)
   return x, y, w, h
 
-def randomCrop(self, img):
+def randomCrop(img, w, h):
   ih, iw, ic = img.shape
-  w, h = self.opt.imgSize
   x, y, w, h = randomBox(iw, ih, w, h)
   img = crop(img, x, y, w, h)
   return img
 
-def loadRandomImage(self, dataset):
-  path = np.random.choice(dataset)
-  return loadImage(self, path)
+def loadRandomImage(paths, *args, **kws):
+  path = np.random.choice(paths)
+  return loadImage(path, *args, **kws)
 
 def img2norm(img):
   img = (((img.astype(np.float32) ** 1.0) / 255.0) * 2) - 1
@@ -158,14 +134,14 @@ def edgedetect(dst, img):
   img[idx] = dst[idx]
   return img
 
-def loadImage(self, path):
+def loadImage(path, img_size, shrink_size):
   img = img2scene(path)
   # random crop
-  img = randomCrop(self, img)
+  img = randomCrop(img, img_size[0], img_size[1])
   #orig = img
-  img = resize(img, self.opt.imgSize)
+  img = resize(img, img_size)
   # downsample to 16x16 res (aka blur the image)
-  croppedImg = downsample(img, self.opt.targetSize, self.opt.imgSize)
+  croppedImg = downsample(img, shrink_size, img_size)
   # edge detect
   #croppedImg = edgedetect(croppedImg, orig)
   croppedImg = edgedetect(croppedImg, img)
@@ -186,10 +162,25 @@ def paths(l):
       r.append(path)
   return r
 
-if __name__ == '__main__':
+def main():
   imgs = paths([
     "dataset/*.jpg",
     ])
-  img, cropped = loadRandomImage(me, imgs)
+
+  imgSize = [1, 1]
+  imgSize = [4, 3]
+  imgSize = [1280, 720]
+  targetSize = [24, 24]
+
+  w, h = imgSize[0], imgSize[1]
+  a = w / h
+  targetSize[0] = int(a*targetSize[0])
+
+  imgSize = tuple(imgSize)
+  targetSize = tuple(targetSize)
+  img, cropped = loadRandomImage(imgs, img_size=imgSize, shrink_size=targetSize)
   save(scene2img(cropped), "cropped.jpg")
   save(scene2img(img), "orig.jpg")
+
+if __name__ == '__main__':
+  main()
